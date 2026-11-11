@@ -1,29 +1,27 @@
 
+import { useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Text } from '@react-three/drei'
+import { OrbitControls, Text, Billboard } from '@react-three/drei'
+import { supabase } from '../supabase'
 
 function PitchLines() {
   return (
     <group position={[0, 0.03, 0]}>
-      {/* Outer boundary */}
       <mesh>
         <boxGeometry args={[68, 0.02, 105]} />
         <meshBasicMaterial color="white" wireframe />
       </mesh>
 
-      {/* Halfway line */}
       <mesh>
         <boxGeometry args={[68, 0.02, 0.15]} />
         <meshBasicMaterial color="white" />
       </mesh>
 
-      {/* Centre circle */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[9.05, 9.2, 128]} />
         <meshBasicMaterial color="white" />
       </mesh>
 
-      {/* Penalty areas */}
       {[-1, 1].map((side) => (
         <group key={side} position={[0, 0, side * 39]}>
           <mesh>
@@ -41,7 +39,9 @@ function PitchLines() {
   )
 }
 
-function PlayerMarker({ position, number, color = '#f4f4f4' }) {
+function PlayerMarker({ position, player, index }) {
+  const number = player.shirt_number ?? index + 1
+
   return (
     <group position={position}>
 
@@ -60,10 +60,10 @@ function PlayerMarker({ position, number, color = '#f4f4f4' }) {
       {/* Jersey */}
       <mesh position={[0, 1.85, 0]}>
         <cylinderGeometry args={[0.48, 0.38, 1.05, 32]} />
-        <meshStandardMaterial color={color} roughness={0.65} />
+        <meshStandardMaterial color="#f4f4f4" roughness={0.65} />
       </mesh>
 
-      {/* Back number */}
+      {/* Shirt number on back */}
       <Text
         position={[0, 2.0, 0.405]}
         fontSize={0.55}
@@ -72,11 +72,27 @@ function PlayerMarker({ position, number, color = '#f4f4f4' }) {
         anchorY="middle"
         fontWeight="bold"
         outlineWidth={0.015}
-        outlineColor="#ffffff"
+        outlineColor="white"
         depthOffset={-1}
       >
         {String(number)}
       </Text>
+
+      {/* Player name above head */}
+      <Billboard position={[0, 3.75, 0]}>
+        <Text
+          fontSize={0.65}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.035}
+          outlineColor="#101010"
+          maxWidth={8}
+          textAlign="center"
+        >
+          {player.name}
+        </Text>
+      </Billboard>
 
       {/* Arms */}
       {[-1, 1].map((side) => (
@@ -86,7 +102,7 @@ function PlayerMarker({ position, number, color = '#f4f4f4' }) {
             rotation={[0, 0, side * 0.18]}
           >
             <cylinderGeometry args={[0.12, 0.14, 0.85, 24]} />
-            <meshStandardMaterial color={color} />
+            <meshStandardMaterial color="#f4f4f4" />
           </mesh>
 
           <mesh position={[side * 0.59, 1.38, 0]}>
@@ -112,7 +128,7 @@ function PlayerMarker({ position, number, color = '#f4f4f4' }) {
 
           <mesh position={[x, 0.25, 0]}>
             <cylinderGeometry args={[0.13, 0.12, 0.28, 24]} />
-            <meshStandardMaterial color={color} />
+            <meshStandardMaterial color="#f4f4f4" />
           </mesh>
 
           <mesh position={[x, 0.09, 0.12]}>
@@ -125,8 +141,8 @@ function PlayerMarker({ position, number, color = '#f4f4f4' }) {
   )
 }
 
-function Pitch() {
-  const players = [
+function Pitch({ players }) {
+  const positions = [
     [-20, 0, -35],
     [-7, 0, -35],
     [7, 0, -35],
@@ -142,23 +158,19 @@ function Pitch() {
 
   return (
     <>
-      {/* Grass */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[75, 112]} />
-        <meshStandardMaterial
-          color="#247b43"
-          roughness={1}
-          metalness={0}
-        />
+        <meshStandardMaterial color="#247b43" roughness={1} />
       </mesh>
 
       <PitchLines />
 
-      {players.map((position, index) => (
+      {players.slice(0, 11).map((player, index) => (
         <PlayerMarker
-          key={index}
-          position={position}
-          number={index + 1}
+          key={player.id}
+          position={positions[index]}
+          player={player}
+          index={index}
         />
       ))}
     </>
@@ -166,14 +178,76 @@ function Pitch() {
 }
 
 export default function FootballPitch() {
+  const [players, setPlayers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function fetchPlayers() {
+      const { data, error } = await supabase
+        .from('players')
+        .select('id, name, shirt_number, position, photo_url, is_active')
+        .eq('is_active', true)
+        .order('shirt_number', { ascending: true })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setPlayers(data || [])
+      }
+
+      setLoading(false)
+    }
+
+    fetchPlayers()
+  }, [])
+
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '650px',
-        background: '#101010'
-      }}
-    >
+    <div style={{
+      width: '100%',
+      height: '650px',
+      background: '#101010',
+      position: 'relative'
+    }}>
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          zIndex: 2,
+          top: 15,
+          left: 15,
+          color: 'white',
+          fontSize: 12
+        }}>
+          LOADING PLAYERS...
+        </div>
+      )}
+
+      {error && (
+        <div style={{
+          position: 'absolute',
+          zIndex: 2,
+          top: 15,
+          left: 15,
+          color: '#ff7777',
+          fontSize: 12
+        }}>
+          Could not load players: {error}
+        </div>
+      )}
+
+      {!loading && !error && players.length === 0 && (
+        <div style={{
+          position: 'absolute',
+          zIndex: 2,
+          top: 15,
+          left: 15,
+          color: 'white',
+          fontSize: 12
+        }}>
+          NO ACTIVE PLAYERS FOUND
+        </div>
+      )}
+
       <Canvas
         camera={{
           position: [0, 65, 85],
@@ -189,13 +263,9 @@ export default function FootballPitch() {
         }}
       >
         <ambientLight intensity={1.5} />
+        <directionalLight position={[20, 30, 20]} intensity={2} />
 
-        <directionalLight
-          position={[20, 30, 20]}
-          intensity={2}
-        />
-
-        <Pitch />
+        <Pitch players={players} />
 
         <OrbitControls
           enablePan
