@@ -1,0 +1,405 @@
+body {
+font-family: 'DM Sans', sans-serif;
+  background: #70865f;
+  color: #fff;
+}
+
+button {
+font: inherit;
+  cursor: pointer;
+}
+
+.site {
+min-height: 100vh;
+  padding: 35px 5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.frame {
+width: 100%;
+  max-width: 1450px;
+  min-height: 650px;
+  margin: auto;
+  border: 4px solid #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  background: #171717;
+  box-shadow: 0 25px 55px #00000035;
+}
+
+.header {
+height: 82px;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ffffff30;
+}
+
+.menu-icon {
+width: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menu-icon span {
+height: 2px;
+  width: 19px;
+  background: #fff;
+}
+
+.menu-icon span:nth-child(2) {
+width: 13px;
+}
+
+.logo {
+position: absolute;
+  left: 12%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: -1px;
+  text-decoration: none;
+}
+
+.logo span {
+color: #bdbdbd;
+}
+
+.header nav {
+display: flex;
+  gap: 38px;
+  margin-left: auto;
+  margin-right: 40px;
+}
+
+.header nav button {
+border: none;
+  background: none;
+  color: #ffffffb5;
+  font-size: 11px;
+  transition: .2s;
+}
+
+.header nav button:hover {
+color: #fff;
+}
+
+.season-label {
+font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #ffffffa0;
+}
+
+.inner-page {
+min-height: 650px;
+  padding: 160px 8% 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(120deg, #171717, #353535);
+}
+
+.inner-label {
+color: #aaa;
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.inner-page h1 {
+font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(55px, 10vw, 110px);
+  margin: 20px 0;
+}
+
+.inner-page p {
+color: #aaa;
+  font-size: 13px;
+}
+
+.inner-page button {
+margin-top: 30px;
+  padding: 14px 20px;
+  width: fit-content;
+  background: #f2f2f0;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.outside-footer {
+width: 100%;
+  max-width: 1450px;
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: space-between;
+  color: #ffffffb0;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 800px) {
+.site {
+padding: 15px;
+}
+
+.frame {
+min-height: 650px;
+}
+
+.header {
+height: 70px;
+}
+
+.logo {
+left: 18%;
+}
+
+.header nav {
+gap: 13px;
+    margin-right: 0;
+}
+
+.header nav button {
+font-size: 9px;
+}
+
+.season-label {
+display: none;
+}
+}
+
+@media (max-width: 500px) {
+.header nav {
+gap: 10px;
+}
+
+.header nav button {
+font-size: 8px;
+}
+
+.logo {
+font-size: 17px;
+}
+
+.outside-footer {
+font-size: 7px;
+}
+}
+
+.site {
+min-height: 100svh;
+  height: 100svh;
+  padding: 12px;
+  justify-content: flex-start;
+}
+
+.frame {
+width: 100%;
+  max-width: none;
+  height: calc(100svh - 24px);
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.inner-page {
+min-height: calc(100svh - 32px);
+}
+
+.outside-footer {
+display: none;
+}
+
+@media (max-width: 800px) {
+.site {
+padding: 8px;
+}
+
+.frame {
+height: calc(100svh - 16px);
+}
+
+.inner-page {
+min-height: calc(100svh - 24px);
+}
+}
+
+.logo {
+font-size: 27px;
+}
+
+.header nav button {
+font-size: 13px;
+}
+
+.season-label {
+font-size: 11px;
+}
+
+.inner-label {
+font-size: 12px;
+}
+
+.inner-page p {
+font-size: 16px;
+}
+
+@media (max-width: 600px) {
+.site {
+padding: 6px;
+    height: auto;
+    min-height: 100svh;
+}
+
+.frame {
+height: auto;
+    min-height: calc(100svh - 12px);
+    border-radius: 18px;
+}
+
+.header {
+padding: 18px;
+}
+
+.header nav {
+gap: 12px;
+}
+
+.header nav button {
+font-size: 10px;
+}
+}
+
+.settings-container {
+position: relative;
+  z-index: 20;
+}
+
+.settings-trigger {
+width: 36px;
+  height: 36px;
+  border: 1px solid #ffffff45;
+  border-radius: 50%;
+  background: transparent;
+  color: white;
+  font-size: 19px;
+}
+
+.settings-dropdown {
+position: absolute;
+  top: 48px;
+  right: 0;
+  width: 250px;
+  padding: 15px;
+  background: #171717;
+  border: 1px solid #ffffff40;
+  border-radius: 14px;
+  box-shadow: 0 15px 35px #0008;
+}
+
+.settings-menu-label {
+display: block;
+  color: #999;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.settings-dropdown button {
+width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px;
+  margin: 0;
+  background: transparent;
+  color: white;
+  border: none;
+  text-align: left;
+}
+
+.settings-dropdown button:hover {
+background: #ffffff12;
+}
+
+.settings-dropdown button strong {
+font-size: 11px;
+}
+
+.settings-dropdown button span {
+font-size: 10px;
+  color: #999;
+}
+
+.settings-dropdown {
+padding: 9px 12px;
+}
+
+.settings-menu-label {
+margin-bottom: 5px;
+  padding: 5px 8px;
+}
+
+.settings-dropdown button {
+padding: 9px 10px;
+  gap: 3px;
+}
+
+.settings-dropdown button strong {
+font-size: 10px;
+}
+
+.settings-dropdown button span {
+font-size: 9px;
+}
+
+html,
+body,
+#root {
+min-height: 100%;
+  height: auto;
+}
+
+body {
+overflow-y: auto;
+}
+
+.site {
+min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+.frame {
+min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+.inner-label {
+color: #c6d4b9 !important;
+}
+
+/* PITCH root defaults: remove Vite starter sizing and automatic dark-mode colors */
+:root {
+  color-scheme: light;
+  font-family: 'DM Sans', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; }
+#root { max-width: none; text-align: left; border: 0; display: block; }
+body { overflow-x: hidden; }
