@@ -393,6 +393,12 @@ min-height: 100vh;
 color: #c6d4b9 !important;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* PITCH root defaults: remove Vite starter sizing and automatic dark-mode colors */
 :root {
   color-scheme: light;
