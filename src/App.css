@@ -553,3 +553,67 @@ button {
     max-width: 100%;
   }
 }
+
+/* PLAYERS PAGE - LAYOUT FIX */
+.players-page {
+  height: calc(100svh - 32px);
+  min-height: 0 !important;
+  padding: 100px 3% 18px !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  overflow-y: auto;
+}
+
+.players-page .players-heading {
+  flex-shrink: 0;
+  width: 100%;
+  align-items: center;
+}
+
+.players-page .players-heading h1 {
+  font-size: 32px !important;
+  line-height: 1 !important;
+  margin: 3px 0 0 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.players-page .players-heading p {
+  font-size: 9px !important;
+  padding: 0;
+}
+
+.players-page > div:nth-child(2) {
+  height: min(55vh, 460px) !important;
+  min-height: 300px;
+  flex-shrink: 0;
+}
+
+.players-page > button {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+/* PLAYERS PAGE FINAL ADJUSTMENTS */
+
+.players-page > button {
+  background: #111 !important;
+  color: #fff !important;
+  border: 1px solid #111 !important;
+  padding: 12px 22px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.players-page > button:hover {
+  background: #333 !important;
+  color: #fff !important;
+}
+
+.players-page > div:nth-child(2) {
+  height: 68vh !important;
+  min-height: 420px !important;
+  width: 100%;
+}

@@ -12,14 +12,14 @@ function PitchLines() {
       </mesh>
 
       {/* Halfway line */}
-      <mesh position={[0, 0, 0]}>
+      <mesh>
         <boxGeometry args={[68, 0.02, 0.15]} />
         <meshBasicMaterial color="white" />
       </mesh>
 
       {/* Centre circle */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <ringGeometry args={[9.05, 9.2, 64]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[9.05, 9.2, 128]} />
         <meshBasicMaterial color="white" />
       </mesh>
 
@@ -30,6 +30,7 @@ function PitchLines() {
             <boxGeometry args={[40.3, 0.02, 16.5]} />
             <meshBasicMaterial color="white" wireframe />
           </mesh>
+
           <mesh position={[0, 0, side * 8.25]}>
             <boxGeometry args={[18.3, 0.02, 5.5]} />
             <meshBasicMaterial color="white" wireframe />
@@ -40,44 +41,115 @@ function PitchLines() {
   )
 }
 
-function PlayerMarker({ position, number, color }) {
+function PlayerMarker({ position, number, color = '#f4f4f4' }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.45, 0.45, 1.3, 24]} />
-        <meshStandardMaterial color={color} />
+
+      {/* Head */}
+      <mesh position={[0, 2.85, 0]}>
+        <sphereGeometry args={[0.32, 32, 32]} />
+        <meshStandardMaterial color="#bd8968" roughness={0.8} />
       </mesh>
 
-      <mesh position={[0, 1.65, 0]}>
-        <sphereGeometry args={[0.35, 24, 24]} />
-        <meshStandardMaterial color="#e8c4a0" />
+      {/* Neck */}
+      <mesh position={[0, 2.48, 0]}>
+        <cylinderGeometry args={[0.12, 0.13, 0.25, 24]} />
+        <meshStandardMaterial color="#bd8968" />
       </mesh>
 
+      {/* Jersey */}
+      <mesh position={[0, 1.85, 0]}>
+        <cylinderGeometry args={[0.48, 0.38, 1.05, 32]} />
+        <meshStandardMaterial color={color} roughness={0.65} />
+      </mesh>
+
+      {/* Back number */}
       <Text
-        position={[0, 2.2, 0]}
-        fontSize={0.65}
-        color="white"
+        position={[0, 2.0, 0.405]}
+        fontSize={0.55}
+        color="#111111"
         anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        outlineWidth={0.015}
+        outlineColor="#ffffff"
+        depthOffset={-1}
       >
-        {number}
+        {String(number)}
       </Text>
+
+      {/* Arms */}
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <mesh
+            position={[side * 0.55, 1.85, 0]}
+            rotation={[0, 0, side * 0.18]}
+          >
+            <cylinderGeometry args={[0.12, 0.14, 0.85, 24]} />
+            <meshStandardMaterial color={color} />
+          </mesh>
+
+          <mesh position={[side * 0.59, 1.38, 0]}>
+            <sphereGeometry args={[0.13, 20, 20]} />
+            <meshStandardMaterial color="#bd8968" />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Shorts */}
+      <mesh position={[0, 1.12, 0]}>
+        <cylinderGeometry args={[0.38, 0.35, 0.42, 32]} />
+        <meshStandardMaterial color="#171717" />
+      </mesh>
+
+      {/* Legs, socks and boots */}
+      {[-0.19, 0.19].map((x) => (
+        <group key={x}>
+          <mesh position={[x, 0.68, 0]}>
+            <cylinderGeometry args={[0.14, 0.12, 0.65, 24]} />
+            <meshStandardMaterial color="#bd8968" />
+          </mesh>
+
+          <mesh position={[x, 0.25, 0]}>
+            <cylinderGeometry args={[0.13, 0.12, 0.28, 24]} />
+            <meshStandardMaterial color={color} />
+          </mesh>
+
+          <mesh position={[x, 0.09, 0.12]}>
+            <boxGeometry args={[0.22, 0.16, 0.38]} />
+            <meshStandardMaterial color="#111111" />
+          </mesh>
+        </group>
+      ))}
     </group>
   )
 }
 
 function Pitch() {
   const players = [
-    [-20, 0, -35], [-7, 0, -35], [7, 0, -35], [20, 0, -35],
-    [-22, 0, -12], [-7, 0, -12], [7, 0, -12], [22, 0, -12],
-    [-12, 0, 12], [12, 0, 12],
+    [-20, 0, -35],
+    [-7, 0, -35],
+    [7, 0, -35],
+    [20, 0, -35],
+    [-22, 0, -12],
+    [-7, 0, -12],
+    [7, 0, -12],
+    [22, 0, -12],
+    [-12, 0, 12],
+    [12, 0, 12],
     [0, 0, 35],
   ]
 
   return (
     <>
+      {/* Grass */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[75, 112]} />
-        <meshStandardMaterial color="#247b43" />
+        <meshStandardMaterial
+          color="#247b43"
+          roughness={1}
+          metalness={0}
+        />
       </mesh>
 
       <PitchLines />
@@ -87,7 +159,6 @@ function Pitch() {
           key={index}
           position={position}
           number={index + 1}
-          color="#f4f4f4"
         />
       ))}
     </>
@@ -96,11 +167,36 @@ function Pitch() {
 
 export default function FootballPitch() {
   return (
-    <div style={{ width: '100%', height: '650px', background: '#101010' }}>
-      <Canvas camera={{ position: [0, 65, 85], fov: 45 }}>
+    <div
+      style={{
+        width: '100%',
+        height: '650px',
+        background: '#101010'
+      }}
+    >
+      <Canvas
+        camera={{
+          position: [0, 65, 85],
+          fov: 45,
+          near: 0.1,
+          far: 300
+        }}
+        dpr={2}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          alpha: false
+        }}
+      >
         <ambientLight intensity={1.5} />
-        <directionalLight position={[20, 30, 20]} intensity={2} />
+
+        <directionalLight
+          position={[20, 30, 20]}
+          intensity={2}
+        />
+
         <Pitch />
+
         <OrbitControls
           enablePan
           enableZoom
