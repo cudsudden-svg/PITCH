@@ -1,8 +1,57 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { FiUserPlus, FiClipboard, FiArchive, FiRotateCcw, FiLogOut, FiArrowLeft } from 'react-icons/fi'
 
 const positions = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
+
+const today = () => {
+  const date = new Date()
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+const emptyStats = player => ({
+  player_id: player.id,
+  side: 'A',
+  minutes_played: 0,
+  goals: 0,
+  assists: 0,
+  saves: 0,
+  yellow_cards: 0,
+  red_cards: 0,
+  clean_sheet: false
+})
+
+// Automatic match rating, calculated from recorded statistics.
+function calculateRating(row, player) {
+  const minutes = Number(row.minutes_played) || 0
+
+  if (minutes <= 0) return null
+
+  let rating = 6
+
+  const goals = Number(row.goals) || 0
+  const assists = Number(row.assists) || 0
+  const saves = Number(row.saves) || 0
+  const yellow = Number(row.yellow_cards) || 0
+  const red = Number(row.red_cards) || 0
+
+  rating += goals * 1
+  rating += assists * 0.7
+  rating += Math.min(saves * 0.15, 1.2)
+
+  if (
+    row.clean_sheet &&
+    ['Goalkeeper', 'Defender'].includes(player?.position)
+  ) {
+    rating += 0.7
+  }
+
+  rating -= yellow * 0.4
+  rating -= red * 1.5
+
+  return Math.max(0, Math.min(10, Math.round(rating * 10) / 10))
+}
 
 export default function AdminPage({ onBack }) {
   const [loading, setLoading] = useState(true)
@@ -18,6 +67,26 @@ export default function AdminPage({ onBack }) {
   const [shirtNumber, setShirtNumber] = useState('')
   const [position, setPosition] = useState('Midfielder')
   const [saving, setSaving] = useState(false)
+
+  const [matches, setMatches] = useState([])
+  const [selectedMatchId, setSelectedMatchId] = useState('')
+  const [matchSaving, setMatchSaving] = useState(false)
+  const [statsRows, setStatsRows] = useState([])
+
+  const [activeTab, setActiveTab] = useState('players')
+
+  const [matchForm, setMatchForm] = useState({
+    opponent: '',
+    match_date: today(),
+    competition: '',
+    venue: '',
+    our_score: 0,
+    opponent_score: 0,
+    duration_minutes: 90,
+    match_type: 'Friendly',
+    side_a_name: 'Our Team',
+    side_b_name: ''
+  })
 
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -48,6 +117,7 @@ export default function AdminPage({ onBack }) {
     setUser(currentUser)
     setAuthorized(true)
     await loadPlayers()
+    await loadMatches()
   }
 
   useEffect(() => {
@@ -94,6 +164,9 @@ export default function AdminPage({ onBack }) {
     setUser(null)
     setAuthorized(false)
     setPlayers([])
+    setMatches([])
+    setStatsRows([])
+    setSelectedMatchId('')
     setEmail('')
     setPassword('')
     setError('')
@@ -112,6 +185,24 @@ export default function AdminPage({ onBack }) {
     }
 
     setPlayers(data || [])
+
+    if (!selectedMatchId) {
+      setStatsRows((data || []).map(emptyStats))
+    }
+  }
+
+  async function loadMatches() {
+    const { data, error: loadError } = await supabase
+      .from('matches')
+      .select('*')
+      .order('match_date', { ascending: false })
+
+    if (loadError) {
+      setError(loadError.message)
+      return
+    }
+
+    setMatches(data || [])
   }
 
   async function addPlayer(e) {
@@ -178,6 +269,186 @@ export default function AdminPage({ onBack }) {
     await loadPlayers()
   }
 
+  function updateMatchField(field, value) {
+    setMatchForm(previous => ({
+      ...previous,
+      [field]: value
+    }))
+  }
+
+  function updatePlayerStat(playerId, field, value) {
+    setStatsRows(previous =>
+      previous.map(row =>
+        row.player_id === playerId
+          ? { ...row, [field]: value }
+          : row
+      )
+    )
+  }
+
+  function newMatch() {
+    setSelectedMatchId('')
+    setMatchForm({
+      opponent: '',
+      match_date: today(),
+      competition: '',
+      venue: '',
+      our_score: 0,
+      opponent_score: 0,
+      duration_minutes: 90,
+      match_type: 'Friendly',
+      side_a_name: 'Our Team',
+      side_b_name: ''
+    })
+    setStatsRows(players.map(emptyStats))
+    setMessage('')
+    setError('')
+  }
+
+  async function selectMatch(matchId) {
+    setError('')
+    setMessage('')
+    setSelectedMatchId(matchId)
+
+    if (!matchId) {
+      newMatch()
+      return
+    }
+
+    const match = matches.find(item => item.id === matchId)
+    if (!match) return
+
+    setMatchForm({
+      opponent: match.opponent || '',
+      match_date: match.match_date || today(),
+      competition: match.competition || '',
+      venue: match.venue || '',
+      our_score: match.our_score ?? 0,
+      opponent_score: match.opponent_score ?? 0,
+      duration_minutes: match.duration_minutes ?? 90,
+      match_type: match.match_type || 'Friendly',
+      side_a_name: match.side_a_name || 'Our Team',
+      side_b_name: match.side_b_name || match.opponent || ''
+    })
+
+    const { data, error: statsError } = await supabase
+      .from('player_match_stats')
+      .select('*')
+      .eq('match_id', matchId)
+
+    if (statsError) {
+      setError(statsError.message)
+      return
+    }
+
+    const savedStats = data || []
+
+    setStatsRows(
+      players.map(player => {
+        const existing = savedStats.find(
+          stat => stat.player_id === player.id
+        )
+
+        return existing
+          ? {
+              ...existing,
+              rating: undefined
+            }
+          : emptyStats(player)
+      })
+    )
+  }
+
+  async function saveMatch(e) {
+    e.preventDefault()
+    setError('')
+    setMessage('')
+
+    if (!matchForm.opponent.trim() || !matchForm.match_date) {
+      setError('Enter the opponent and match date.')
+      return
+    }
+
+    if (!matchForm.side_a_name.trim() || !matchForm.side_b_name.trim()) {
+      setError('Enter the names of both sides.')
+      return
+    }
+
+    setMatchSaving(true)
+
+    const matchPayload = {
+      opponent: matchForm.opponent.trim(),
+      match_date: matchForm.match_date,
+      competition: matchForm.competition.trim() || null,
+      venue: matchForm.venue.trim() || null,
+      our_score: Number(matchForm.our_score),
+      opponent_score: Number(matchForm.opponent_score),
+      duration_minutes: Number(matchForm.duration_minutes),
+      match_type: matchForm.match_type,
+      side_a_name: matchForm.side_a_name.trim(),
+      side_b_name: matchForm.side_b_name.trim(),
+      status: 'completed'
+    }
+
+    let matchId = selectedMatchId
+
+    try {
+      if (matchId) {
+        const { error: updateError } = await supabase
+          .from('matches')
+          .update(matchPayload)
+          .eq('id', matchId)
+
+        if (updateError) throw updateError
+      } else {
+        const { data, error: insertError } = await supabase
+          .from('matches')
+          .insert(matchPayload)
+          .select('id')
+          .single()
+
+        if (insertError) throw insertError
+        matchId = data.id
+        setSelectedMatchId(matchId)
+      }
+
+      const statsPayload = statsRows.map(row => {
+        const player = players.find(item => item.id === row.player_id)
+
+        return {
+          player_id: row.player_id,
+          match_id: matchId,
+          side: row.side,
+          minutes_played: Math.max(0, Number(row.minutes_played) || 0),
+          goals: Math.max(0, Number(row.goals) || 0),
+          assists: Math.max(0, Number(row.assists) || 0),
+          rating: calculateRating(row, player),
+          saves: Math.max(0, Number(row.saves) || 0),
+          yellow_cards: Math.max(0, Number(row.yellow_cards) || 0),
+          red_cards: Math.max(0, Number(row.red_cards) || 0),
+          clean_sheet: Boolean(row.clean_sheet)
+        }
+      })
+
+      if (statsPayload.length > 0) {
+        const { error: statsError } = await supabase
+          .from('player_match_stats')
+          .upsert(statsPayload, {
+            onConflict: 'player_id,match_id'
+          })
+
+        if (statsError) throw statsError
+      }
+
+      setMessage('Match and automatically calculated ratings saved successfully.')
+      await loadMatches()
+    } catch (saveError) {
+      setError(saveError.message || 'Could not save the match.')
+    }
+
+    setMatchSaving(false)
+  }
+
   if (loading) {
     return (
       <section className="inner-page admin-page">
@@ -196,15 +467,7 @@ export default function AdminPage({ onBack }) {
           <h1>ADMIN LOGIN</h1>
           <p>Sign in with your authorized PITCH account.</p>
 
-          {user && (
-            <p className="admin-error">
-              {error}
-            </p>
-          )}
-
-          {!user && error && (
-            <p className="admin-error">{error}</p>
-          )}
+          {error && <p className="admin-error">{error}</p>}
 
           {!user && (
             <form className="admin-login-form" onSubmit={login}>
@@ -238,9 +501,7 @@ export default function AdminPage({ onBack }) {
             </form>
           )}
 
-          {user && (
-            <button onClick={logout}>SIGN OUT</button>
-          )}
+          {user && <button onClick={logout}>SIGN OUT</button>}
 
           <button className="admin-back" onClick={onBack}>
             ← BACK HOME
@@ -258,12 +519,12 @@ export default function AdminPage({ onBack }) {
         <div>
           <span className="inner-label">PITCH / CONTROL CENTRE</span>
           <h1>ADMIN PANEL</h1>
-          <p>MANAGE YOUR SQUAD AND PLAYER DATABASE.</p>
+          <p>MANAGE YOUR SQUAD AND MATCHES.</p>
         </div>
 
         <div className="admin-actions">
-          <button onClick={logout}>SIGN OUT</button>
-          <button onClick={onBack}>← BACK</button>
+          <button onClick={logout}><FiLogOut /> SIGN OUT</button>
+          <button onClick={onBack}><FiArrowLeft /> BACK</button>
         </div>
       </div>
 
@@ -276,67 +537,109 @@ export default function AdminPage({ onBack }) {
           <span>TOTAL REGISTERED</span>
           <strong>{players.length}</strong>
         </div>
+        <div>
+          <span>RECORDED MATCHES</span>
+          <strong>{matches.length}</strong>
+        </div>
       </div>
 
-      <div className="admin-section">
-        <span className="admin-section-label">01 / PLAYER REGISTRATION</span>
-        <h2>ADD NEW PLAYER</h2>
+      {message && <p className="admin-success">{message}</p>}
+      {error && <p className="admin-error">{error}</p>}
 
-        <form className="player-form" onSubmit={addPlayer}>
-          <label>
-            PLAYER NAME
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Enter full name"
-              maxLength={60}
-              required
-            />
-          </label>
+      <div className="admin-tabs">
+        <button
+          type="button"
+          className={activeTab === 'players' ? 'admin-tab active' : 'admin-tab'}
+          onClick={() => {
+            setActiveTab('players')
+            setMessage('')
+            setError('')
+          }}
+        >
+          <FiUserPlus />
+          <span>
+            <strong>REGISTER PLAYER</strong>
+            <small>Add and manage your squad</small>
+          </span>
+        </button>
 
-          <label>
-            SHIRT NUMBER
-            <input
-              type="number"
-              min="1"
-              max="99"
-              value={shirtNumber}
-              onChange={e => setShirtNumber(e.target.value)}
-              placeholder="e.g. 10"
-              required
-            />
-          </label>
-
-          <label>
-            POSITION
-            <select
-              value={position}
-              onChange={e => setPosition(e.target.value)}
-            >
-              {positions.map(item => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-
-          <button type="submit" disabled={saving}>
-            {saving ? 'ADDING...' : '+ ADD PLAYER'}
-          </button>
-        </form>
-
-        {message && <p className="admin-success">{message}</p>}
-        {error && <p className="admin-error">{error}</p>}
+        <button
+          type="button"
+          className={activeTab === 'matches' ? 'admin-tab active' : 'admin-tab'}
+          onClick={() => {
+            setActiveTab('matches')
+            setMessage('')
+            setError('')
+          }}
+        >
+          <FiClipboard />
+          <span>
+            <strong>RECORD MATCH</strong>
+            <small>Scores and player performance</small>
+          </span>
+        </button>
       </div>
 
-      <div className="admin-section">
-        <span className="admin-section-label">02 / SQUAD DATABASE</span>
-        <h2>REGISTERED PLAYERS</h2>
+      {activeTab === 'players' && (
+        <div className="admin-section">
+          <span className="admin-section-label">01 / SQUAD MANAGEMENT</span>
+          <h2>REGISTER NEW PLAYER</h2>
+          <p className="admin-help">
+            Add a player to your squad and manage their active status.
+          </p>
 
-        <div className="admin-player-list">
-          {players.length === 0 ? (
-            <p>No players registered yet.</p>
-          ) : (
-            players.map(player => (
+          <form className="player-form" onSubmit={addPlayer}>
+            <label>
+              PLAYER NAME
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Enter full name"
+                maxLength={60}
+                required
+              />
+            </label>
+
+            <label>
+              SHIRT NUMBER
+              <input
+                type="number"
+                min="1"
+                max="99"
+                value={shirtNumber}
+                onChange={e => setShirtNumber(e.target.value)}
+                placeholder="e.g. 10"
+                required
+              />
+            </label>
+
+            <label>
+              POSITION
+              <select
+                value={position}
+                onChange={e => setPosition(e.target.value)}
+              >
+                {positions.map(item => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+
+            <button type="submit" disabled={saving}>
+              {saving ? 'ADDING...' : '+ ADD PLAYER'}
+            </button>
+          </form>
+
+          <div className="admin-list-heading">
+            <div>
+              <span className="admin-section-label">YOUR SQUAD</span>
+              <h3>PLAYER DIRECTORY</h3>
+            </div>
+            <span>{players.length} REGISTERED</span>
+          </div>
+
+          <div className="admin-player-list">
+            {players.map(player => (
               <div className="admin-player" key={player.id}>
                 <div className="admin-player-number">
                   {player.shirt_number ?? '--'}
@@ -356,19 +659,248 @@ export default function AdminPage({ onBack }) {
                 </span>
 
                 <button
-                  className="archive-button"
+                  type="button"
+                  className={player.is_active ? 'archive-button' : 'restore-button'}
                   onClick={() => updatePlayerStatus(player)}
                 >
+                  {player.is_active ? <FiArchive /> : <FiRotateCcw />}
                   {player.is_active ? 'ARCHIVE' : 'RESTORE'}
                 </button>
               </div>
-            ))
-          )}
+            ))}
+
+            {players.length === 0 && (
+              <p className="admin-empty">No players registered yet.</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'matches' && (
+        <div className="admin-section match-editor">
+          <span className="admin-section-label">02 / MATCH CENTRE</span>
+          <h2>RECORD MATCH</h2>
+          <p className="admin-help">
+            Create a match or select an existing one to edit its score and player statistics.
+            Player ratings are calculated automatically when you save.
+          </p>
+
+          <div className="match-toolbar">
+            <select
+              value={selectedMatchId}
+              onChange={e => selectMatch(e.target.value)}
+            >
+              <option value="">＋ Create a new match</option>
+              {matches.map(match => (
+                <option key={match.id} value={match.id}>
+                  {match.match_date} · {match.opponent} ({match.our_score}-{match.opponent_score})
+                </option>
+              ))}
+            </select>
+
+            <button type="button" onClick={newMatch}>
+              + NEW MATCH
+            </button>
+          </div>
+
+          <form onSubmit={saveMatch}>
+            <div className="match-form-grid">
+              <label>
+                OPPONENT / MATCH NAME
+                <input
+                  value={matchForm.opponent}
+                  onChange={e => updateMatchField('opponent', e.target.value)}
+                  placeholder="e.g. Saturday Friendly"
+                  required
+                />
+              </label>
+
+              <label>
+                MATCH DATE
+                <input
+                  type="date"
+                  value={matchForm.match_date}
+                  onChange={e => updateMatchField('match_date', e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                COMPETITION
+                <input
+                  value={matchForm.competition}
+                  onChange={e => updateMatchField('competition', e.target.value)}
+                  placeholder="Friendly / League"
+                />
+              </label>
+
+              <label>
+                VENUE
+                <input
+                  value={matchForm.venue}
+                  onChange={e => updateMatchField('venue', e.target.value)}
+                  placeholder="Where you played"
+                />
+              </label>
+
+              <label>
+                SIDE A NAME
+                <input
+                  value={matchForm.side_a_name}
+                  onChange={e => updateMatchField('side_a_name', e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                SIDE B NAME
+                <input
+                  value={matchForm.side_b_name}
+                  onChange={e => updateMatchField('side_b_name', e.target.value)}
+                  placeholder="Opponent or second team"
+                  required
+                />
+              </label>
+
+              <label>
+                SIDE A SCORE
+                <input
+                  type="number"
+                  min="0"
+                  value={matchForm.our_score}
+                  onChange={e => updateMatchField('our_score', e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                SIDE B SCORE
+                <input
+                  type="number"
+                  min="0"
+                  value={matchForm.opponent_score}
+                  onChange={e => updateMatchField('opponent_score', e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                DURATION (MINUTES)
+                <input
+                  type="number"
+                  min="0"
+                  value={matchForm.duration_minutes}
+                  onChange={e => updateMatchField('duration_minutes', e.target.value)}
+                />
+              </label>
+
+              <label>
+                MATCH TYPE
+                <select
+                  value={matchForm.match_type}
+                  onChange={e => updateMatchField('match_type', e.target.value)}
+                >
+                  <option>Friendly</option>
+                  <option>League</option>
+                  <option>Tournament</option>
+                  <option>Training</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="match-stats-heading">
+              <div>
+                <span className="admin-section-label">PLAYER PERFORMANCE</span>
+                <h3>ENTER PLAYER STATS</h3>
+              </div>
+              <span>{statsRows.length} PLAYERS</span>
+            </div>
+
+            <div className="rating-explainer">
+              <strong>AUTOMATIC RATINGS</strong>
+              <span>Ratings are generated from goals, assists, saves, clean sheets and cards when you save the match.</span>
+            </div>
+
+            <div className="match-player-stats">
+              {statsRows.map(row => {
+                const player = players.find(item => item.id === row.player_id)
+                if (!player) return null
+
+                const rating = calculateRating(row, player)
+
+                return (
+                  <div className="match-player-row" key={row.player_id}>
+                    <div className="match-player-name">
+                      <strong>{player.name}</strong>
+                      <span>#{player.shirt_number} · {player.position}</span>
+                    </div>
+
+                    <label>
+                      SIDE
+                      <select
+                        value={row.side}
+                        onChange={e => updatePlayerStat(row.player_id, 'side', e.target.value)}
+                      >
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                      </select>
+                    </label>
+
+                    {[
+                      ['minutes_played', 'MIN'],
+                      ['goals', 'GOALS'],
+                      ['assists', 'ASSISTS'],
+                      ['saves', 'SAVES'],
+                      ['yellow_cards', 'YELLOW'],
+                      ['red_cards', 'RED']
+                    ].map(([field, label]) => (
+                      <label key={field}>
+                        {label}
+                        <input
+                          type="number"
+                          min="0"
+                          value={row[field]}
+                          onChange={e => updatePlayerStat(row.player_id, field, e.target.value)}
+                        />
+                      </label>
+                    ))}
+
+                    <div className="automatic-rating">
+                      <span>RATING</span>
+                      <strong>{rating === null ? '—' : rating.toFixed(1)}</strong>
+                      <small>AUTO</small>
+                    </div>
+
+                    <label className="clean-sheet-control">
+                      CLEAN SHEET
+                      <input
+                        type="checkbox"
+                        checked={row.clean_sheet}
+                        onChange={e => updatePlayerStat(row.player_id, 'clean_sheet', e.target.checked)}
+                      />
+                    </label>
+                  </div>
+                )
+              })}
+
+              {statsRows.length === 0 && (
+                <p className="admin-empty">Register players before recording match statistics.</p>
+              )}
+            </div>
+
+            <button className="save-match-button" type="submit" disabled={matchSaving}>
+              {matchSaving
+                ? 'SAVING MATCH...'
+                : selectedMatchId
+                  ? 'SAVE MATCH CHANGES'
+                  : 'SAVE MATCH & PLAYER STATS'}
+            </button>
+          </form>
+        </div>
+      )}
 
       <p className="admin-note">
-        Players are never permanently deleted.
+        Players are never permanently deleted. Match statistics and automatically calculated ratings are saved separately for each player and match.
       </p>
     </section>
   )
