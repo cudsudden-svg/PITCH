@@ -1,7 +1,7 @@
 
 import FootballPitch from '../components/FootballPitch'
 
-export default function PlayersPage({ onBack }) {
+export default function PlayersPage({ onBack, onSelectPlayer }) {
   return (
     <section className="inner-page players-page">
       <div className="players-heading">
@@ -13,7 +13,7 @@ export default function PlayersPage({ onBack }) {
         <p>MEET THE PLAYERS. TRACK THE GAME.</p>
       </div>
 
-      <FootballPitch />
+      <FootballPitch onSelectPlayer={onSelectPlayer} />
 
       <button onClick={onBack}>← BACK HOME</button>
     </section>

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { supabase } from '../supabase'
+import { supabase, supabaseConfigError } from '../supabase'
 import { FiUserPlus, FiClipboard, FiArchive, FiRotateCcw, FiLogOut, FiArrowLeft } from 'react-icons/fi'
 
 const positions = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
@@ -54,7 +54,7 @@ function calculateRating(row, player) {
 }
 
 export default function AdminPage({ onBack }) {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(supabase))
   const [authorized, setAuthorized] = useState(false)
   const [user, setUser] = useState(null)
 
@@ -67,6 +67,9 @@ export default function AdminPage({ onBack }) {
   const [shirtNumber, setShirtNumber] = useState('')
   const [position, setPosition] = useState('Midfielder')
   const [saving, setSaving] = useState(false)
+  const [editingPlayerId, setEditingPlayerId] = useState(null)
+  const [playerPositionDraft, setPlayerPositionDraft] = useState('')
+  const [savingPlayerPosition, setSavingPlayerPosition] = useState(false)
 
   const [matches, setMatches] = useState([])
   const [selectedMatchId, setSelectedMatchId] = useState('')
@@ -89,7 +92,7 @@ export default function AdminPage({ onBack }) {
   })
 
   const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(supabaseConfigError)
 
   async function verifyUser(currentUser) {
     setError('')
@@ -121,6 +124,8 @@ export default function AdminPage({ onBack }) {
   }
 
   useEffect(() => {
+    if (!supabase) return
+
     async function initialize() {
       const { data: { user: currentUser }, error: authError } =
         await supabase.auth.getUser()
@@ -139,6 +144,11 @@ export default function AdminPage({ onBack }) {
 
   async function login(e) {
     e.preventDefault()
+    if (!supabase) {
+      setError(supabaseConfigError)
+      return
+    }
+
     setError('')
     setMessage('')
     setLoggingIn(true)
@@ -267,6 +277,37 @@ export default function AdminPage({ onBack }) {
     )
 
     await loadPlayers()
+  }
+
+  async function savePlayerPosition(player) {
+    setError('')
+    setMessage('')
+    setSavingPlayerPosition(true)
+
+    try {
+      const { error: updateError } = await supabase
+        .from('players')
+        .update({ position: playerPositionDraft })
+        .eq('id', player.id)
+
+      if (updateError) throw updateError
+
+      setPlayers(currentPlayers => currentPlayers.map(item => (
+        item.id === player.id
+          ? { ...item, position: playerPositionDraft }
+          : item
+      )))
+      setMessage(`${player.name}'s position was updated.`)
+      setEditingPlayerId(null)
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : 'Could not update the player position.'
+      )
+    } finally {
+      setSavingPlayerPosition(false)
+    }
   }
 
   function updateMatchField(field, value) {
@@ -649,6 +690,56 @@ export default function AdminPage({ onBack }) {
                   <strong>{player.name}</strong>
                   <span>{player.position || 'Position not set'}</span>
                 </div>
+
+                {player.is_active && (
+                  editingPlayerId === player.id ? (
+                    <form
+                      className="admin-player-position-form"
+                      onSubmit={event => {
+                        event.preventDefault()
+                        void savePlayerPosition(player)
+                      }}
+                    >
+                      <label className="sr-only" htmlFor={`position-${player.id}`}>
+                        Position for {player.name}
+                      </label>
+                      <select
+                        id={`position-${player.id}`}
+                        value={playerPositionDraft}
+                        onChange={event => setPlayerPositionDraft(event.target.value)}
+                        disabled={savingPlayerPosition}
+                      >
+                        {positions.map(item => (
+                          <option key={item} value={item}>{item}</option>
+                        ))}
+                      </select>
+                      <button type="submit" disabled={savingPlayerPosition}>
+                        {savingPlayerPosition ? 'SAVING…' : 'SAVE'}
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-position-cancel"
+                        disabled={savingPlayerPosition}
+                        onClick={() => setEditingPlayerId(null)}
+                      >
+                        CANCEL
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      className="edit-position-button"
+                      onClick={() => {
+                        setEditingPlayerId(player.id)
+                        setPlayerPositionDraft(player.position || 'Midfielder')
+                        setError('')
+                        setMessage('')
+                      }}
+                    >
+                      EDIT POSITION
+                    </button>
+                  )
+                )}
 
                 <span className={
                   player.is_active

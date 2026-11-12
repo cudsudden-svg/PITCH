@@ -858,7 +858,6 @@ color: #ffaaaa !important;
 color: #c6d4b9 !important;
 }
 
-.admin-actions button,
 .player-form button,
 .match-toolbar button,
 .save-match-button,
@@ -873,4 +872,66 @@ color: #c5c5c5 !important;
 .admin-tabs button,
 .admin-player button {
 opacity: 1;
+}
+
+.admin-player-position-form {
+display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-player-position-form select {
+min-width: 118px;
+  height: 36px;
+  padding: 0 9px;
+  border: 1px solid #ffffff3d;
+  border-radius: 9px;
+  background: #292929;
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+}
+
+.admin-player-position-form button,
+.edit-position-button {
+min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ffffff30;
+  border-radius: 9px;
+  background: #303633;
+  color: #fff !important;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.admin-player-position-form button[type="submit"],
+.edit-position-button {
+border-color: #9db58e;
+  background: #344b37;
+}
+
+.admin-player-position-form .admin-position-cancel {
+background: transparent;
+}
+
+.admin-player-position-form button:disabled {
+opacity: .6;
+}
+
+@media (max-width: 650px) {
+  .admin-player-position-form {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-player-position-form select {
+    flex: 1 1 100%;
+  }
+
+  .admin-player-position-form button,
+  .edit-position-button {
+    flex: 1;
+    min-height: 40px;
+  }
 }

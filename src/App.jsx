@@ -6,15 +6,22 @@ import HomePage from './pages/HomePage'
 import PlayersPage from './pages/PlayersPage'
 import MatchesPage from './pages/MatchesPage'
 import RankingsPage from './pages/RankingsPage'
+import PlayerProfilePage from './pages/PlayerProfilePage'
 import AdminPage from './pages/AdminPage'
 
 export default function App() {
   const [page, setPage] = useState('home')
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   function navigate(destination) {
     setPage(destination)
     setSettingsOpen(false)
+  }
+
+  function openPlayer(playerId) {
+    setSelectedPlayerId(playerId)
+    navigate('player')
   }
 
   return (
@@ -35,10 +42,34 @@ export default function App() {
           </a>
 
           <nav>
-            <button onClick={() => navigate('home')}>Home</button>
-            <button onClick={() => navigate('players')}>Players</button>
-            <button onClick={() => navigate('matches')}>Matches</button>
-            <button onClick={() => navigate('rankings')}>Rankings</button>
+            <button
+              className={page === 'home' ? 'active' : ''}
+              aria-current={page === 'home' ? 'page' : undefined}
+              onClick={() => navigate('home')}
+            >
+              Home
+            </button>
+            <button
+              className={page === 'players' || page === 'player' ? 'active' : ''}
+              aria-current={page === 'players' || page === 'player' ? 'page' : undefined}
+              onClick={() => navigate('players')}
+            >
+              Players
+            </button>
+            <button
+              className={page === 'matches' ? 'active' : ''}
+              aria-current={page === 'matches' ? 'page' : undefined}
+              onClick={() => navigate('matches')}
+            >
+              Matches
+            </button>
+            <button
+              className={page === 'rankings' ? 'active' : ''}
+              aria-current={page === 'rankings' ? 'page' : undefined}
+              onClick={() => navigate('rankings')}
+            >
+              Rankings
+            </button>
           </nav>
 
           <div className="settings-container">
@@ -69,9 +100,31 @@ export default function App() {
         </header>
 
         {page === 'home' && <HomePage onNavigate={navigate} />}
-        {page === 'players' && <PlayersPage onBack={() => navigate('home')} />}
-        {page === 'matches' && <MatchesPage onBack={() => navigate('home')} />}
-        {page === 'rankings' && <RankingsPage onBack={() => navigate('home')} />}
+        {page === 'players' && (
+          <PlayersPage
+            onBack={() => navigate('home')}
+            onSelectPlayer={openPlayer}
+          />
+        )}
+        {page === 'player' && (
+          <PlayerProfilePage
+            playerId={selectedPlayerId}
+            onBack={() => navigate('players')}
+          />
+        )}
+        {page === 'matches' && (
+          <MatchesPage
+            onBack={() => navigate('home')}
+            onNavigate={navigate}
+          />
+        )}
+        {page === 'rankings' && (
+          <RankingsPage
+            onBack={() => navigate('home')}
+            onNavigate={navigate}
+            onSelectPlayer={openPlayer}
+          />
+        )}
 
         {page === 'admin' && (
           <AdminPage onBack={() => navigate('home')} />

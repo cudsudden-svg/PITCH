@@ -1,14 +1,16 @@
+
 .hero {
-min-height: 650px;
+  min-height: calc(100svh - 32px);
   position: relative;
   display: flex;
   align-items: center;
   overflow: hidden;
   background: #171717;
+  color: white;
 }
 
 .hero-image {
-position: absolute;
+  position: absolute;
   inset: 0;
   background-image:
     linear-gradient(90deg, #080808 0%, #080808d9 29%, #08080830 65%, #08080885 100%),
@@ -20,7 +22,7 @@ position: absolute;
 }
 
 .vertical-title {
-position: absolute;
+  position: absolute;
   left: 5%;
   top: 50%;
   transform: translateY(-42%);
@@ -28,243 +30,191 @@ position: absolute;
   flex-direction: column;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900;
-  font-size: clamp(80px, 11vw, 150px);
+  font-size: clamp(120px, 14vw, 205px);
   line-height: .76;
   letter-spacing: -4px;
   z-index: 2;
+  color: white;
 }
 
 .vertical-title span:first-child {
-writing-mode: vertical-rl;
+  writing-mode: vertical-rl;
   transform: rotate(180deg);
 }
 
 .vertical-title .outline {
-color: transparent;
-  -webkit-text-stroke: 1px #ffffffd0;
+  color: transparent;
+  -webkit-text-stroke: 1px white;
   margin-left: 15px;
 }
 
 .hero-description {
-position: absolute;
-  left: 40%;
+  position: absolute;
+  left: 37%;
   top: 43%;
-  max-width: 190px;
+  max-width: 145px;
   z-index: 2;
 }
 
 .small-line {
-display: block;
+  display: block;
   width: 35px;
   height: 2px;
-  background: #fff;
+  background: white;
   margin-bottom: 18px;
 }
 
 .hero-description p {
-font-size: 10px;
-  line-height: 1.7;
-  color: #ffffffc9;
+  font-size: 13px;
+  line-height: 1.9;
+  color: white;
 }
 
 .side-card {
-position: absolute;
-  right: 0;
+  position: absolute;
+  right: 4%;
   bottom: 23%;
-  width: 255px;
-  padding: 22px;
-  background: #171717d9;
-  border: 1px solid #ffffff85;
-  border-right: none;
-  backdrop-filter: blur(15px);
+  width: 310px;
+  padding: 30px;
+  background: #111213c9;
+  border: 1px solid #ffffff35;
+  border-radius: 28px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 55px #0008;
   z-index: 3;
 }
 
 .side-label {
-color: #c4c4c4;
-  font-size: 9px;
+  color: white;
+  font-size: 11px;
   letter-spacing: 2px;
 }
 
 .side-card h2 {
-font-family: 'Barlow Condensed', sans-serif;
-  font-size: 30px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 39px;
   line-height: 1;
   margin: 18px 0 12px;
+  color: white;
 }
 
 .side-card p {
-color: #bcbcbc;
-  font-size: 10px;
+  color: #ffffffd0;
+  font-size: 12px;
   line-height: 1.7;
 }
 
 .side-card button {
-width: 100%;
+  width: 100%;
   margin-top: 20px;
-  padding: 13px;
-  background: #f3f3f0;
+  padding: 16px;
+  background: white;
   color: #171717;
   border: none;
+  border-radius: 50px;
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
   transition: .2s;
+  cursor: pointer;
+}
+
+.side-card button span {
+  color: #171717;
 }
 
 .side-card button:hover {
-background: #c9c9c9;
+  background: #e0e0e0;
 }
 
 .hero-bottom {
-position: absolute;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20px 4%;
+  padding: 24px 4%;
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid #ffffff30;
+  border-top: 1px solid #ffffff50;
   z-index: 2;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 2px;
-  color: #ffffffb0;
+  color: white;
 }
 
 @media (max-width: 800px) {
-.vertical-title {
-left: 4%;
-    font-size: clamp(65px, 15vw, 110px);
-}
+  .hero {
+    min-height: calc(100svh - 24px);
+  }
 
-.hero-description {
-left: 43%;
+  .vertical-title {
+    left: 4%;
+    font-size: clamp(75px, 15vw, 120px);
+  }
+
+  .hero-description {
+    left: 40%;
     top: 37%;
-}
+    max-width: 160px;
+  }
 
-.side-card {
-width: 210px;
-    bottom: 17%;
-}
-}
-
-@media (max-width: 500px) {
-.vertical-title {
-font-size: 70px;
-}
-
-.hero-description {
-display: none;
-}
-
-.side-card {
-width: 190px;
-    bottom: 15%;
-}
-
-.hero-image {
-background-position: 55% center;
-}
-}
-
-.hero {
-min-height: calc(100svh - 32px);
-}
-
-@media (max-width: 800px) {
-.hero {
-min-height: calc(100svh - 24px);
-}
-}
-
-.vertical-title {
-font-size: clamp(120px, 14vw, 205px);
-}
-
-.hero-description {
-max-width: 250px;
-}
-
-.hero-description p {
-font-size: 13px;
-  line-height: 1.9;
-}
-
-.side-card {
-width: 310px;
-  padding: 30px;
-}
-
-.side-label {
-font-size: 11px;
-}
-
-.side-card h2 {
-font-size: 39px;
-}
-
-.side-card p {
-font-size: 12px;
-}
-
-.side-card button {
-font-size: 12px;
-  padding: 16px;
-}
-
-.hero-bottom {
-font-size: 11px;
-  padding: 24px 4%;
-}
-
-@media (max-width: 800px) {
-.vertical-title {
-font-size: clamp(75px, 15vw, 120px);
-}
-
-.side-card {
-width: 240px;
+  .side-card {
+    width: 240px;
     padding: 22px;
-}
+    bottom: 17%;
+  }
 
-.side-card h2 {
-font-size: 32px;
-}
-}
-
-.side-card button {
-border-radius: 50px;
-}
-
-.side-card {
-border-radius: 28px;
+  .side-card h2 {
+    font-size: 32px;
+  }
 }
 
 @media (max-width: 600px) {
-.hero {
-min-height: calc(100svh - 12px);
-    padding: 100px 22px 30px;
-}
+  .hero {
+    min-height: min(760px, calc(100svh - 76px));
+    padding: 30px 16px 24px;
+  }
 
-.vertical-title {
-font-size: clamp(65px, 17vw, 105px);
-}
+  .vertical-title {
+    left: 1%;
+    top: 43%;
+    font-size: clamp(58px, 16vw, 92px);
+  }
 
-.side-card {
-width: 100%;
-    max-width: 300px;
-    border-radius: 24px;
-    padding: 24px;
-}
+  .hero-description {
+    display: none;
+  }
 
-.side-card button {
-width: 100%;
-    border-radius: 50px;
-}
+  .side-card {
+    right: 12px;
+    bottom: 13%;
+    left: 12px;
+    width: auto;
+    max-width: none;
+    padding: clamp(17px, 5vw, 24px);
+    border-radius: 18px;
+  }
 
-.hero-description {
-max-width: 100%;
-}
+  .side-card h2 {
+    margin: 11px 0 8px;
+    font-size: clamp(28px, 8vw, 36px);
+  }
+
+  .side-card button {
+    margin-top: 13px;
+    padding: 13px 15px;
+  }
+
+  .hero-bottom {
+    gap: 8px;
+    padding: 15px 12px;
+    font-size: clamp(6px, 2vw, 8px);
+    letter-spacing: .7px;
+  }
+
+  .hero-bottom span:last-child {
+    text-align: right;
+  }
 }
