@@ -13,6 +13,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 
 Restart the dev server after changing the file. These `VITE_` values are exposed to the browser, so use only the Supabase publishable key, never a secret or service-role key.
 
+For a Vercel deployment, add the same variables under **Project Settings > Environment Variables**. Enable them for the environment you deploy (Production, Preview, or Development), then redeploy so Vite can include them in the site build. Get the project URL and publishable key from your Supabase project's API settings.
+
 ## Pitch positions
 
 Apply `supabase/migrations/20261112000000_add_pitch_positions.sql` to the Supabase project to enable saved pitch repositioning. Until then, the squad still loads and players are arranged by playing position, but move controls stay disabled. Owners and editors can right-click a player tag (or use its **MOVE** button), then click a spot on the pitch. Other visitors can still view player tags and profiles.
