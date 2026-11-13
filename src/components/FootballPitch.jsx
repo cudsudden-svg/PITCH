@@ -428,6 +428,15 @@ export default function FootballPitch({ onSelectPlayer }) {
         }
 
         try {
+          const { data: { session }, error: sessionError } =
+            await supabase.auth.getSession()
+          if (sessionError) throw sessionError
+
+          if (!session) {
+            setCanManagePlayers(false)
+            return
+          }
+
           const { data: { user }, error: userError } = await supabase.auth.getUser()
           if (userError) throw userError
 
