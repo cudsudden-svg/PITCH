@@ -19,6 +19,10 @@ For a Vercel deployment, add the same variables under **Project Settings > Envir
 
 Apply `supabase/migrations/20261112000000_add_pitch_positions.sql` to the Supabase project to enable saved pitch repositioning. Until then, the squad still loads and players are arranged by playing position, but move controls stay disabled. Owners and editors can right-click a player tag (or use its **MOVE** button), then click a spot on the pitch. Other visitors can still view player tags and profiles.
 
+## Player identification and FIFA cards
+
+Apply `supabase/migrations/20261120000000_add_fifa_player_cards.sql` to enable the FIFA card gallery. Visitors choose an active player from the home-screen identification overlay; that choice is saved in the current browser and used to show only that player's match appearances and side-specific results. The **FIFA Cards** tab is public to view, while owners and editors can sign in and edit each player's card. The migration grants public read access and restricts card changes to authenticated owners and editors through row-level security.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)

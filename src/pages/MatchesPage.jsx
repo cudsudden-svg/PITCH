@@ -29,16 +29,24 @@ function formatMatchDate(value) {
   }).format(date)
 }
 
-function getResult(match) {
+function getPlayerResult(match, performance) {
   const sideAScore = Number(match.our_score) || 0
   const sideBScore = Number(match.opponent_score) || 0
+  const playerSide = performance.side === 'B'
+    ? [sideBScore, sideAScore]
+    : [sideAScore, sideBScore]
 
-  if (sideAScore > sideBScore) return 'win'
-  if (sideAScore < sideBScore) return 'loss'
+  if (playerSide[0] > playerSide[1]) return 'win'
+  if (playerSide[0] < playerSide[1]) return 'loss'
   return 'draw'
 }
 
-export default function MatchesPage({ onBack, onNavigate }) {
+export default function MatchesPage({
+  onBack,
+  onNavigate,
+  selectedPlayer,
+  onChoosePlayer
+}) {
   const [matches, setMatches] = useState([])
   const [statsByMatch, setStatsByMatch] = useState({})
   const [playersById, setPlayersById] = useState({})
@@ -127,9 +135,21 @@ export default function MatchesPage({ onBack, onNavigate }) {
     }
   }, [refreshCount])
 
-  const results = matches.reduce(
+  const playerPerformances = selectedPlayer
+    ? matches.reduce((performances, match) => {
+        const performance = (statsByMatch[match.id] || []).find(
+          row => row.player_id === selectedPlayer.id
+        )
+        if (performance && Number(performance.minutes_played) > 0) {
+          performances[match.id] = performance
+        }
+        return performances
+      }, {})
+    : {}
+  const playerMatches = matches.filter(match => playerPerformances[match.id])
+  const results = playerMatches.reduce(
     (totals, match) => {
-      totals[getResult(match)] += 1
+      totals[getPlayerResult(match, playerPerformances[match.id])] += 1
       return totals
     },
     { win: 0, draw: 0, loss: 0 }
@@ -141,7 +161,11 @@ export default function MatchesPage({ onBack, onNavigate }) {
         <div>
           <span className="inner-label">PITCH / MATCH CENTRE</span>
           <h1>MATCH HISTORY</h1>
-          <p>RESULTS, FIXTURES AND PLAYER PERFORMANCES.</p>
+          <p>
+            {selectedPlayer
+              ? `MATCHES PLAYED BY ${selectedPlayer.name.toUpperCase()}.`
+              : 'CHOOSE YOUR PLAYER TO SEE YOUR RESULTS.'}
+          </p>
         </div>
         <div className="matches-actions">
           <button
@@ -165,7 +189,7 @@ export default function MatchesPage({ onBack, onNavigate }) {
       )}
 
       <div className="match-summary">
-        <div><span>RECORDED MATCHES</span><strong>{matches.length}</strong></div>
+        <div><span>{selectedPlayer ? 'YOUR APPEARANCES' : 'YOUR MATCHES'}</span><strong>{selectedPlayer ? playerMatches.length : '—'}</strong></div>
         <div><span>WINS</span><strong>{results.win}</strong></div>
         <div><span>DRAWS</span><strong>{results.draw}</strong></div>
         <div><span>LOSSES</span><strong>{results.loss}</strong></div>
@@ -173,14 +197,23 @@ export default function MatchesPage({ onBack, onNavigate }) {
 
       {loading ? (
         <p className="matches-message">Loading match history…</p>
-      ) : matches.length === 0 ? (
+      ) : !selectedPlayer ? (
+        <div className="matches-empty">
+          <span className="matches-empty-index">01 / PLAYER IDENTIFICATION</span>
+          <h2>Select yourself to view your results</h2>
+          <p>Only matches you appeared in will count toward your personal wins, draws and losses.</p>
+          <button type="button" onClick={onChoosePlayer}>
+            CHOOSE PLAYER <span>↗</span>
+          </button>
+        </div>
+      ) : playerMatches.length === 0 ? (
         <div className="matches-empty">
           <span className="matches-empty-index">01 / MATCH CENTRE</span>
-          <h2>{error ? 'Match history is unavailable' : 'No matches recorded yet'}</h2>
+          <h2>{error ? 'Match history is unavailable' : 'No appearances recorded for you'}</h2>
           <p>
             {error
               ? 'Refresh the page to try again. If the problem continues, check Supabase access policies.'
-              : 'Once a match is saved in the admin panel, its score and player performances will appear here.'}
+              : 'Your results will appear here after an admin records your minutes for a match.'}
           </p>
           {!error && (
             <button type="button" onClick={() => onNavigate('admin')}>
@@ -190,8 +223,8 @@ export default function MatchesPage({ onBack, onNavigate }) {
         </div>
       ) : (
         <div className="match-list">
-          {matches.map(match => {
-            const result = getResult(match)
+          {playerMatches.map(match => {
+            const result = getPlayerResult(match, playerPerformances[match.id])
             const performances = (statsByMatch[match.id] || [])
               .slice()
               .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))

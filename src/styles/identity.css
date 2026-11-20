@@ -1,0 +1,221 @@
+.identity-trigger {
+  max-width: 190px;
+  overflow: hidden;
+  padding: 9px 13px;
+  border: 1px solid #ffffff35;
+  border-radius: 30px;
+  background: #ffffff10;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity-trigger:hover {
+  background: #ffffff20;
+}
+
+.identity-overlay {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 25px;
+  background: #080a0b4d;
+  backdrop-filter: blur(3px);
+}
+
+.identity-dialog {
+  width: min(100%, 570px);
+  max-height: min(720px, 85%);
+  overflow: auto;
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid #ffffff35;
+  border-radius: 22px;
+  background: #171a1b55;
+  box-shadow: 0 25px 80px #000b;
+  backdrop-filter: blur(4px);
+}
+
+.identity-eyebrow {
+  color: #c6d3ad;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.identity-dialog h1 {
+  margin: 14px 0 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(42px, 9vw, 68px);
+  line-height: .95;
+}
+
+.identity-dialog > p {
+  max-width: 420px;
+  margin: 0;
+  color: #c3c6c5;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.identity-dialog .identity-status {
+  margin-top: 20px;
+  padding: 13px 15px;
+  border: 1px solid #ffffff20;
+  border-radius: 10px;
+  background: #ffffff0a;
+}
+
+.identity-dialog .identity-error {
+  color: #ffaaa1;
+}
+
+.identity-player-list {
+  display: grid;
+  gap: 8px;
+  max-height: 350px;
+  overflow: auto;
+  margin-top: 24px;
+}
+
+.identity-player {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #ffffff18;
+  border-radius: 12px;
+  background: #ffffff09;
+  color: white;
+  text-align: left;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+
+.identity-player:hover {
+  transform: translateX(3px);
+  border-color: #b7c98d88;
+  background: #b7c98d18;
+}
+
+.identity-admin-link {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border: 0;
+  border-radius: 9px;
+  background: #d3e2ab;
+  color: #172019;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.identity-shirt-number {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid #ffffff30;
+  border-radius: 50%;
+  color: #d3e2ab;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.identity-player > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.identity-player strong {
+  font-size: 13px;
+}
+
+.identity-player small {
+  color: #a7aaa8;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.identity-select-mark {
+  margin-left: auto;
+  color: #d3e2ab;
+}
+
+.identity-cancel {
+  margin-top: 18px;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  color: #c6c9c7;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.identity-cancel:hover {
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  .header {
+    gap: 10px;
+  }
+
+  .identity-trigger {
+    position: absolute;
+    top: 75px;
+    right: 12px;
+    z-index: 6;
+    max-width: 145px;
+    padding: 7px 10px;
+    background: #111213e8;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 600px) {
+  .identity-trigger {
+    top: 71px;
+    right: 8px;
+    max-width: 128px;
+    min-height: 36px;
+    padding: 6px 9px;
+    font-size: 8px;
+  }
+
+  .identity-overlay {
+    position: fixed;
+    padding: 10px;
+  }
+
+  .identity-dialog {
+    max-height: calc(100dvh - 20px);
+    padding: 22px 18px;
+  }
+
+  .identity-player-list {
+    max-height: none;
+    overflow: visible;
+    margin-top: 17px;
+  }
+
+  .identity-player {
+    min-height: 56px;
+    padding: 7px 11px;
+  }
+
+  .header nav button {
+    min-height: 44px;
+    padding: 10px 1px;
+  }
+}
